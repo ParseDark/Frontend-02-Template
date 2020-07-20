@@ -1,0 +1,205 @@
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@antv/g6@3.5.10/dist/g6.min.js"></script>
+</head>
+
+<body>
+    <div id="container"></div>
+    <script>
+        const sourceData = {
+            id: "Realm",
+            children: [
+                {
+                    id: "基本类型",
+                    children: [
+                        {
+                            id: 'Number',
+                        },
+                        {
+                            id: 'String',
+                        },
+                        {
+
+                            id: 'Boolean',
+                        },
+                        {
+                            id: 'Symbol',
+                        },
+                        {
+                            id: 'Object',
+                        },
+                    ]
+                },
+                {
+                    id: "基础功能和数据结构",
+                    children: [
+                        {
+                            id: 'Array',
+                        },
+                        {
+                            id: 'Data',
+                        },
+                        {
+                            id: 'RegExp',
+                        },
+                        {
+                            id: 'Promise',
+                        },
+                        {
+                            id: 'Proxy',
+                        },
+                        {
+                            id: 'Map',
+                        },
+                        {
+                            id: 'WeakMap',
+                        },
+                        {
+                            id: 'Set',
+                        },
+                        {
+                            id: 'WeakSet',
+                        },
+                        {
+                            id: 'Function',
+                        },
+                    ]
+                },
+                {
+                    id: "错误类型",
+                    children: [
+                        {
+                            id: 'Error',
+                        },
+                        {
+                            id: 'EvalError',
+                        },
+                        {
+                            id: 'ReferenceError',
+                        },
+                        {
+                            id: 'SyntaxError',
+                        },
+                        {
+                            id: 'TypeError',
+                        },
+                        {
+                            id: 'URIError',
+                        },
+                    ]
+                },
+                {
+                    id: "二进制操作",
+                    children: [
+                        {
+                            id: 'ArrayBuffer',
+                        },
+                        {
+                            id: 'ShareArrayBuffer',
+                        },
+                        {
+                            id: 'DataView',
+                        },
+                    ]
+                },
+                {
+                    id: "带类型数组",
+                    children: [
+                        {
+                            id: "Float32Array",
+                        },
+                        {
+                            id: "Float64Array",
+                        },
+                        {
+                            id: "Int8Array",
+                        },
+                        {
+                            id: "Int16Array",
+                        },
+                        {
+                            id: "Int32Array",
+                        },
+                        {
+                            id: "UInt8Array",
+                        },
+                        {
+                            id: "UInt16Array",
+                        },
+                        {
+                            id: "UInt32Array",
+                        },
+                        {
+                            id: "UInt8ClampedArray",
+                        },
+                    ]
+                },
+            ],
+        };
+
+        const data = sourceData;
+        const width = document.getElementById('container').scrollWidth;
+        const height = document.getElementById('container').scrollHeight || 500;
+        const graph = new G6.TreeGraph({
+            container: 'container',
+            width,
+            height,
+            modes: {
+                default: [
+                    {
+                        type: 'collapse-expand',
+                        onChange: function onChange(item, collapsed) {
+                            const data = item.get('model').data;
+                            data.collapsed = collapsed;
+                            return true;
+                        },
+                    },
+                    'drag-canvas',
+                    'zoom-canvas',
+                ],
+            },
+            defaultNode: {
+                size: 26,
+                anchorPoints: [
+                    [0, 0.5],
+                    [1, 0.5],
+                ],
+                style: {
+                    fill: '#C6E5FF',
+                    stroke: '#5B8FF9',
+                },
+            },
+            defaultEdge: {
+                type: 'cubic-horizontal',
+                style: {
+                    stroke: '#A3B1BF',
+                },
+            },
+            layout: {
+                type: 'dendrogram',
+                direction: 'LR', // H / V / LR / RL / TB / BT
+                nodeSep: 30,
+                rankSep: 100,
+            },
+        });
+
+        graph.node(function (node) {
+            return {
+                label: node.id,
+                labelCfg: {
+                    position: node.children && node.children.length > 0 ? 'left' : 'right',
+                    offset: 5,
+                },
+            };
+        });
+
+        graph.data(data);
+        graph.render();
+        graph.fitView();
+    </script>
+</body>
+
+
+
+</html>

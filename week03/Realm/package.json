@@ -1,0 +1,9 @@
+{
+    "dependencies": {
+        "@antv/g6": "^3.5.10",
+        "babel-preset-env": "^1.7.0"
+    },
+    "devDependencies": {
+        "babel-core": "^6.26.3"
+    }
+}
