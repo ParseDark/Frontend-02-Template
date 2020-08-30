@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: rebeccapurple;
+            display: inline-block;
+            border: 1px solid #fff;
+            vertical-align: middle;
+
+            line-height: 100px;
+            font-size: 50px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="board"></div>
+
+    <script>
+        let pattern = [
+            [0, 0, 2],
+            [0, 0, 1],
+            [0, 0, 0],
+        ];
+
+        let color = 1;
+
+        // 胜负判定
+        function checkWinner(pattern, color) {
+            // 检查横行
+            for (let i = 0; i < 3; i++) {
+                let win = true;
+                for (let j = 0; j < 3; j++) {
+                    if (pattern[i][j] != color) {
+                        win = false
+                    }
+                }
+
+                if (win) return true;
+            }
+
+            // 检查纵行
+            for (let i = 0; i < 3; i++) {
+                let win = true;
+                for (let j = 0; j < 3; j++) {
+                    if (pattern[j][i] != color) {
+                        win = false
+                    }
+                }
+
+                if (win) return true;
+            }
+
+            // 检查交叉轴2: 
+            {
+                let win = true;
+                for (let i = 0; i < 3; i++) {
+
+                    for (let j = 0; j < 3; j++) {
+                        if (pattern[j][2 - j] != color) {
+                            win = false;
+                        }
+                    }
+                }
+                if (win) return true;
+            }
+
+
+            // 检查交叉轴1: 
+            {
+                let win = true;
+                for (let i = 0; i < 3; i++) {
+
+                    for (let j = 0; j < 3; j++) {
+                        if (pattern[j][j] != color) {
+                            win = false;
+                        }
+                    }
+                }
+                if (win) return true;
+            }
+
+            return false;
+
+
+        }
+
+        // 检查该点是否已落子
+        function checkHad(x, y) {
+            if (pattern[x][y] == 0) return false;
+            return true;
+        }
+
+        // 检查游戏是否为死局
+        function checkEnd() {
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (pattern[i][j] == 0) return false;
+                }
+            }
+            return true;
+
+        }
+
+        //  检查哪个玩家即将胜利
+        function willWin(pattern, color) {
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (pattern[i][j]) {
+                        continue;
+                    }
+
+                    let tmp = clone(pattern);
+                    tmp[i][j] = color;
+
+                    if (checkWinner(tmp, color)) {
+                        return [j, i];
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        function baseChoice(pattern, color) {
+            let p;
+            if (p = willWin(pattern, color)) {
+                debugger
+                return {
+                    point: p,
+                    result: 1,
+                }
+            }
+
+            let result = -2;
+            let point = null;
+
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (pattern[i][j]) {
+                        continue;
+                    }
+
+                    let tmp = clone(pattern);
+                    tmp[i][j] = color;
+
+                    let r = baseChoice(tmp, 3 - color).result;
+
+                    if (-r > result) {
+                        result = -r;
+                        point = [j, i];
+                    }
+                }
+            }
+
+            return {
+                point,
+                result: point ? result : 0,
+            }
+        }
+
+        function clone(pattern) {
+            return JSON.parse(JSON.stringify(pattern));
+        }
+
+        function move(x, y) {
+            if (checkHad(x, y)) {
+                return alert("please select another cell.")
+            }
+            pattern[x][y] = color;
+            if (checkWinner(pattern, color)) {
+                render();
+                return alert(color == 2 ? "x is winner" : "O is winner.");
+            }
+
+            color = 3 - color;
+            render();
+            if (willWin(pattern, color)) {
+                alert(color == 2 ? "x will winner" : "O will winner.");
+            }
+            if (checkEnd()) {
+                alert("Die game.")
+            }
+            console.log(baseChoice(pattern, color));
+        }
+
+        function render() {
+            const border = document.querySelector('#board');
+            border.innerHTML = '';
+
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    let cell = document.createElement('div');
+                    cell.classList.add('cell');
+
+                    cell.innerHTML = pattern[j][i] == '2' ? "❌" :
+                        pattern[j][i] == '1' ? '⭕️' : '';
+
+                    cell.addEventListener('click', () => move(j, i));
+
+                    border.appendChild(cell);
+                }
+
+                border.appendChild(document.createElement('br'));
+            }
+        }
+
+
+        render();
+    </script>
+</body>
+
+</html>
