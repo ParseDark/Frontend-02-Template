@@ -1,0 +1,100 @@
+<input id = "r" type="range" min="0" max="255" />
+<input id = "g" type="range" min="0" max="255" />
+<input id = "b" type="range" min="0" max="255" />
+<div id="color" style="width: 100%;height: 100%;"></div>
+<script>
+    let object = {
+        r: 1,
+        g: 1,
+        b: 1,
+    }
+
+    let callbacks = new Map();
+
+    let usedReactivties = [];
+
+    let reactivties = new Map();
+
+    function reactive(obj) {
+
+        // cache the proxy object result
+        if(reactivties.has(obj)) {
+            return reactivties.get(obj);
+        }
+
+       let proxy = new Proxy(obj, {
+            set(obj, prop, value) {
+                obj[prop] = value;
+                if(callbacks.get(obj)) {
+                    if(callbacks.get(obj).get(prop)) {
+                        for(let callback of callbacks.get(obj).get(prop)) {
+                            callback();
+                        }
+                    }
+                }
+
+                return obj[prop];
+            },
+            get(obj, prop) {
+                console.log(obj, prop);
+                usedReactivties.push([obj, prop]);
+                // if the value is object then we need to push into dependencies
+                if(typeof obj[prop] === 'object') {
+                    return reactive(obj[prop]);
+                }
+
+                return obj[prop];
+            }
+        });
+
+        reactivties.set(object, proxy);
+
+        return proxy; 
+    }
+
+    function effect(callback) {
+        // clean dependencies arr.
+        usedReactivties = [];
+
+        // call the callback fun get dependencies arr
+        // trigger proxy get hook 
+        // push dependencies into usedReactivties (record dependencies relationship)
+        callback();
+
+        // callback's structure is double layer
+        for(let reactivity of usedReactivties) {
+            if(!callbacks.has(reactivity[0])) {
+                callbacks.set(reactivity[0], new Map());
+            }
+
+            if(!callbacks.get(reactivity[0]).has(reactivity[1])) {
+                callbacks.get(reactivity[0]).set(reactivity[1], []);
+            }
+
+            callbacks.get(reactivity[0]).get(reactivity[1]).push(callback);
+        }
+    }
+
+    let po = reactive(object);
+
+    effect(() => {
+        document.getElementById('r').value = po.r;
+    });
+
+    effect(() => {
+        document.getElementById('g').value = po.g;
+    });
+
+    effect(() => {
+        document.getElementById('b').value = po.b;
+    });
+
+    effect(() => {
+        document.getElementById('color').style.backgroundColor = `rgb(${po.r}, ${po.g}, ${po.b})`;
+    });
+
+    document.getElementById('r').addEventListener('input', e => po.r = e.target.value);
+    document.getElementById('g').addEventListener('input', e => po.g = e.target.value);
+    document.getElementById('b').addEventListener('input', e => po.b = e.target.value);
+
+</script>

@@ -1,0 +1,15 @@
+<script>
+    let object = {
+        a: 1,
+        b: 2,
+    }
+
+    let po = new Proxy(object, {
+        // obj 当前对象本身
+        // prop 执行set的字段名称
+        // value 要set的值
+        set(obj, prop, value) {
+            console.log(obj, prop);
+        }
+    })
+</script>

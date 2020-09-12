@@ -1,0 +1,67 @@
+<script>
+    let object = {
+        a: 1,
+        b: 2,
+    }
+
+    let callbacks = new Map();
+
+    let usedReactivties = [];
+
+    function reactive(obj) {
+        return new Proxy(obj, {
+            set(obj, prop, value) {
+                obj[prop] = value;
+                if(callbacks.get(obj)) {
+                    if(callbacks.get(obj).get(prop)) {
+                        for(let callback of callbacks.get(obj).get(prop)) {
+                            callback();
+                        }
+                    }
+                }
+
+                return obj[prop];
+            },
+            get(obj, prop) {
+                console.log(obj, prop);
+                usedReactivties.push([obj, prop]);
+                return obj[prop];
+            }
+        });
+    }
+
+    function effect(callback) {
+        // clean dependencies arr.
+        usedReactivties = [];
+
+        // call the callback fun get dependencies arr
+        // trigger proxy get hook 
+        // push dependencies into usedReactivties (record dependencies relationship)
+        callback();
+
+        // callback's structure is double layer
+        for(let reactivity of usedReactivties) {
+            if(!callbacks.has(reactivity[0])) {
+                callbacks.set(reactivity[0], new Map());
+            }
+
+            if(!callbacks.get(reactivity[0]).has(reactivity[1])) {
+                callbacks.get(reactivity[0]).set(reactivity[1], []);
+            }
+
+            callbacks.get(reactivity[0]).get(reactivity[1]).push(callback);
+        }
+    }
+
+    
+
+    let po = reactive(object);
+
+    effect(() => {
+        console.log('biu~1', po.a);
+    })
+
+    effect(() => {
+        console.log('biu~2', po.a);
+    })
+</script>

@@ -1,0 +1,19 @@
+<div id="dragable" style="width: 100px;height: 100px;background-color: pink;"></div>
+
+<script>
+    // dragable骨架代码
+    let dragableDom = document.getElementById('dragable');
+
+    dragableDom.addEventListener('mousedown', function(e) {
+        let up = () => {
+            document.removeEventListener('mousemove', move);
+            document.removeEventListener('mouseup', up);
+        };
+        let move = (e) => {
+            console.log(e);
+        };
+        document.addEventListener('mousemove', move);
+        document.addEventListener('mouseup', up);
+
+    });
+</script>
