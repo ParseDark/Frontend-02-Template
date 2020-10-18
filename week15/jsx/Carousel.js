@@ -1,26 +1,23 @@
-import { Component, createElement } from "./framework";
+import { Component, createElement, STATE, ATTRIBUTES } from "./framework";
 import { enableGesture } from "../flick/gesture";
 import { Timeline, Animation } from "./animation";
 import { ease } from "./ease";
+export { STATE, ATTRIBUTES } from "./framework";
 
 const IMG_WIDTH = 330;
 
 export class Carousel extends Component {
   constructor() {
     super();
-    this.attributes = Object.create(null);
   }
 
-  setAttribute(name, value) {
-    this.attributes[name] = value;
-  }
   render() {
     console.log(this.attributes);
     this.root = document.createElement("div");
     this.root.classList.add("carousel");
-    for (let record of this.attributes.src) {
+    for (let record of this[ATTRIBUTES].src) {
       let child = document.createElement("div");
-      child.style.backgroundImage = `url('${record}')`;
+      child.style.backgroundImage = `url('${record.img}')`;
       this.root.appendChild(child);
     }
 
@@ -34,7 +31,7 @@ export class Carousel extends Component {
 
     let children = this.root.children;
 
-    let position = 0;
+    this[STATE].position = 0;
 
     let t = 0;
 
@@ -47,9 +44,18 @@ export class Carousel extends Component {
       ax = ease(progress) * IMG_WIDTH - IMG_WIDTH;
     });
 
+    this.root.addEventListener("tap", (event) => {
+      const currentPosition = this[STATE].position;
+      const data = this[ATTRIBUTES].src[currentPosition];
+      this.triggerEvent("click", {
+        data,
+        position: currentPosition,
+      });
+    });
+
     this.root.addEventListener("pan", (event) => {
       let x = event.clientX - event.startX - ax;
-      let current = position - (x - (x % IMG_WIDTH)) / IMG_WIDTH;
+      let current = this[STATE].position - (x - (x % IMG_WIDTH)) / IMG_WIDTH;
       for (let offset of [-1, 0, 1]) {
         let pos = current + offset;
         pos = ((pos % children.length) + children.length) % children.length;
@@ -70,7 +76,7 @@ export class Carousel extends Component {
       handler = setInterval(nextPic, 3000);
 
       let x = event.clientX - event.startX - ax;
-      let current = position - (x - (x % IMG_WIDTH)) / IMG_WIDTH;
+      let current = this[STATE].position - (x - (x % IMG_WIDTH)) / IMG_WIDTH;
 
       let direction = Math.round((x % IMG_WIDTH) / IMG_WIDTH);
 
@@ -105,16 +111,20 @@ export class Carousel extends Component {
         );
       }
 
-      position = position - (x - (x % IMG_WIDTH)) / IMG_WIDTH - direction;
-      position =
-        ((position % children.length) + children.length) % children.length;
+      this[STATE].position =
+        this[STATE].position - (x - (x % IMG_WIDTH)) / IMG_WIDTH - direction;
+      this[STATE].position =
+        ((this[STATE].position % children.length) + children.length) %
+        children.length;
+
+      this.triggerEvent("change", { position: this[STATE].position });
     });
 
     let nextPic = () => {
       let children = this.root.children;
-      let nextIndex = (position + 1) % children.length;
+      let nextIndex = (this[STATE].position + 1) % children.length;
 
-      let current = children[position];
+      let current = children[this[STATE].position];
       let next = children[nextIndex];
 
       t = Date.now();
@@ -123,8 +133,8 @@ export class Carousel extends Component {
         new Animation(
           current.style,
           "transform",
-          -position * IMG_WIDTH,
-          -IMG_WIDTH - position * IMG_WIDTH,
+          -this[STATE].position * IMG_WIDTH,
+          -IMG_WIDTH - this[STATE].position * IMG_WIDTH,
           500,
           0,
           ease,
@@ -145,77 +155,12 @@ export class Carousel extends Component {
         )
       );
 
-      position = nextIndex;
+      this[STATE].position = nextIndex;
+      this.triggerEvent("change", { position: this[STATE].position });
     };
 
     handler = setInterval(nextPic, 3000);
 
-    // 手动控制逻辑
-    // this.root.addEventListener('mousedown', event => {
-    //     console.log(event);
-    //     let startX = event.clientX, startY = event.clientY;
-    //     let children = this.root.children;
-
-    //     let move = event => {
-    //         console.log(event);
-    //         let x = event.clientX - startX;
-
-    //         let current = position -((x - x % IMG_WIDTH) / IMG_WIDTH);
-    //         for(let offset of [-1, 0, 1]) {
-    //             let pos = current + offset;
-    //             pos = (pos + children.length) % children.length
-    //             children[pos].style.transition = 'none';
-    //             children[pos].style.transform = `translateX(${-pos* IMG_WIDTH + offset * IMG_WIDTH + x % IMG_WIDTH}px)`;
-    //         }
-    //     }
-
-    //     let up = event => {
-    //         let x = event.clientX - startX;
-
-    //         position = position - Math.round(x / IMG_WIDTH)
-
-    //         for(let offset of [-1, 0, -Math.sign(Math.round(x / IMG_WIDTH) - x + (IMG_WIDTH / 2) * Math.sign(x))]) {
-    //             let pos = position + offset;
-    //             pos = (pos + children.length) % children.length
-    //             children[pos].style.transition = '';
-    //             children[pos].style.transform = `translateX(${-pos* IMG_WIDTH + offset * IMG_WIDTH }px)`;
-    //         }
-
-    //         document.removeEventListener("mousemove", move);
-    //         document.removeEventListener("mouseup", up);
-    //     }
-
-    //     document.addEventListener('mousemove', move);
-
-    //     document.addEventListener('mouseup', up);
-
-    // });
-
-    // 自动轮播逻辑
-    // let currentIndex = 0;
-
-    // setInterval(() => {
-    //     let children = this.root.children;
-    //     let nextIndex = (currentIndex + 1) % children.length;
-
-    //     let current = children[currentIndex];
-    //     let next = children[nextIndex];
-
-    //     next.style.transition =  `none`;
-    //     next.style.transform =  `translateX(${100 - nextIndex * 100}%)`;
-
-    //     setTimeout(() => {
-    //         next.style.transition = '';
-    //         current.style.transform =  `translateX(${-100 - currentIndex * 100}%)`;
-    //         next.style.transform =  `translateX(${- nextIndex * 100}%)`;
-    //         currentIndex = nextIndex;
-    //     }, 16);
-
-    // }, 330);
-
     return this.root;
-  }
-  mountTo(parent) {
-    parent.appendChild(this.render());
   }
 }
