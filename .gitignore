@@ -1,2 +1,5 @@
 node_modules/*
 ./week15/node_modules
+./week16/generator-vue/node_modules/*
+./week16/hd_cli/node_modules/*
+./week16/vue-demo/node_modules/*
