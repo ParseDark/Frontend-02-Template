@@ -1,5 +1,5 @@
 {
-  "name": "git-demo",
+  "name": "cypreeDemo",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,7 +10,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "^7.13.0",
-    "eslint-plugin-react": "^7.21.5"
+    "cypress": "^5.5.0"
   }
 }
